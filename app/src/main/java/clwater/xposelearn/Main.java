@@ -20,26 +20,25 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
  * Created by gengzhibo on 17/7/12.
  */
 
-public class Main implements IXposedHookLoadPackage ,IXposedHookInitPackageResources {
-
+public class Main implements IXposedHookLoadPackage  {
 
 
     public void handleLoadPackage(final XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
 //        XposedBridge.log("gzb " + "handleLoadPackage");
 
-        if (lpparam.packageName.equals("clwater.xposelearn")) {
+        if (lpparam.packageName.equals("clwater.otherpro")) {
             XposedBridge.log("gzb " + lpparam.packageName);
 
-            XposedHelpers.findAndHookMethod("clwater.xposelearn.MainActivity", lpparam.classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
+            XposedHelpers.findAndHookMethod("clwater.otherpro.MainActivity", lpparam.classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                     //不能通过Class.forName()来获取Class ，在跨应用时会失效
-                    Class c=lpparam.classLoader.loadClass("clwater.xposelearn.MainActivity");
-                    Field field=c.getDeclaredField("textView");
+                    Class c=lpparam.classLoader.loadClass("clwater.otherpro.MainActivity");
+                    Field field=c.getDeclaredField("textView1");
                     field.setAccessible(true);
                     //param.thisObject 为执行该方法的对象，在这里指MainActivity
                     TextView textView= (TextView) field.get(param.thisObject);
-                    textView.setText("Hello Xposed");
+                    textView.setText("Hello Xposed text1");
                 }
             });
         }
@@ -49,44 +48,4 @@ public class Main implements IXposedHookLoadPackage ,IXposedHookInitPackageResou
 
 
 
-
-
-    public void handleInitPackageResources(XC_InitPackageResources.InitPackageResourcesParam resparam) throws Throwable {
-
-//        XposedBridge.log("gzb " + "handleInitPackageResources");
-
-        if (resparam.packageName.equals("clwater.xposelearn")) {
-            resparam.res.hookLayout(resparam.packageName, "layout", "activity_main", new XC_LayoutInflated() {
-                @Override
-                public void handleLayoutInflated(LayoutInflatedParam liparam) throws Throwable {
-                    printView((ViewGroup) liparam.view, 1);
-                }
-            });
-            resparam.res.hookLayout(resparam.packageName, "layout", "activity_main2", new XC_LayoutInflated() {
-                @Override
-                public void handleLayoutInflated(XC_LayoutInflated.LayoutInflatedParam liparam) throws Throwable {
-                    XposedBridge.log("hook view_demo");
-                }
-            });
-        }
-    }
-
-    //遍历资源布局树，并打印出来
-    private void printView(ViewGroup view, int deep) {
-        String viewgroupDeepFormat = "";
-        String viewDeepFormat = "";
-        for (int i = 0; i < deep - 1; i++) {
-            viewgroupDeepFormat += "\t";
-        }
-        viewDeepFormat = viewgroupDeepFormat + "\t";
-        XposedBridge.log(viewgroupDeepFormat + view.toString());
-        int count = view.getChildCount();
-        for (int i = 0; i < count; i++) {
-            if (view.getChildAt(i) instanceof ViewGroup) {
-                printView((ViewGroup) view.getChildAt(i), deep + 1);
-            } else {
-                XposedBridge.log(viewDeepFormat + view.getChildAt(i).toString());
-            }
-        }
-    }
 }
